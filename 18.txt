@@ -1,0 +1,172 @@
+
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/gradient1"
+    android:gravity="center_vertical">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- Meetupp Logo -->
+            <ImageView
+                android:layout_width="200dp"
+                android:layout_height="200dp"
+                android:layout_gravity="center_horizontal"
+                android:src="@drawable/meetupp"
+                android:scaleType="centerInside"
+                android:layout_marginBottom="24dp" />
+
+            <!-- Profile Picture -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <com.mikhaellopez.circularimageview.CircularImageView
+                    android:id="@+id/profileImageView"
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
+                    android:src="@drawable/dp"
+                    android:layout_marginEnd="16dp"/>
+
+                <Button
+                    android:id="@+id/changeProfileButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Change Profile Picture"
+
+                    android:textColor="@color/black" />
+            </LinearLayout>
+            <EditText
+                android:id="@+id/usernameEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Display Username"
+                />
+
+            <Button
+                android:id="@+id/birthdateButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Select Birthdate Here"
+                android:layout_marginTop="16dp"
+                />
+
+
+
+            <TextView
+                android:id="@+id/birthdateTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Selected Birthdate: "
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:layout_marginTop="8dp"
+                />
+
+            <RadioGroup
+                android:id="@+id/genderRadioGroup"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp">
+
+                <TextView
+                    android:id="@+id/genderLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Gender"
+
+                    android:textColor="@color/black"
+                    android:layout_marginTop="16dp"/>
+
+                <RadioButton
+                    android:id="@+id/maleRadioButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Male"
+                    />
+
+                <RadioButton
+                    android:id="@+id/femaleRadioButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Female"
+                    />
+
+                <RadioButton
+                    android:id="@+id/otherRadioButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Other"
+                    />
+            </RadioGroup>
+
+            <EditText
+                android:id="@+id/emailEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:hint="Email"
+                android:inputType="textEmailAddress"
+                />
+
+            <EditText
+                android:id="@+id/passwordEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:hint="Password"
+                android:inputType="textPassword"
+                />
+
+            <EditText
+                android:id="@+id/confirmPasswordEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:hint="Confirm Password"
+                android:inputType="textPassword"
+                />
+
+            <Button
+                android:id="@+id/registerButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="Register"
+
+                android:textColor="@color/black"
+                android:background="@color/light_red" />
+
+            <Button
+                android:id="@+id/loginButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Go to Login Page"
+
+                android:textColor="@color/black"
+                android:background="@color/light_red" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="*Only profile picture can be modified later.\n*We will calculate your age and display on your profile."
+                android:textColor="@color/black"
+
+                android:layout_marginTop="16dp"/>
+
+        </LinearLayout>
+    </ScrollView>
+</RelativeLayout>

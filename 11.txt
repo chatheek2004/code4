@@ -1,0 +1,86 @@
+
+package com.example.meetupp300
+
+import android.os.Bundle
+import android.util.Log
+import android.widget.Button
+import android.widget.EditText
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.FirebaseFirestore
+
+class ChatActivity : AppCompatActivity() {
+
+    private lateinit var chatId: String
+    private lateinit var otherUserUid: String
+    private lateinit var messageEditText: EditText
+    private lateinit var sendMessageButton: Button
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_chat)
+
+        // Get chatId from intent
+        chatId = intent.getStringExtra("chatId") ?: ""
+
+        messageEditText = findViewById(R.id.messageEditText)
+        sendMessageButton = findViewById(R.id.sendMessageButton)
+
+        fetchOtherUserUid()
+
+        sendMessageButton.setOnClickListener {
+            val message = messageEditText.text.toString().trim()
+            if (message.isNotEmpty()) {
+                sendMessage(message)
+            } else {
+                Toast.makeText(this, "Please enter a message", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun fetchOtherUserUid() {
+        val db = FirebaseFirestore.getInstance()
+        db.collection("chats").document(chatId)
+            .get()
+            .addOnSuccessListener { documentSnapshot: DocumentSnapshot ->
+                if (documentSnapshot.exists()) {
+                    otherUserUid = documentSnapshot.getString("otherUserUid") ?: ""
+                    Log.d("ChatActivity", "Other User UID: $otherUserUid")
+                } else {
+                    Log.e("ChatActivity", "Chat document does not exist")
+                    Toast.makeText(this, "Chat document does not exist", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.e("ChatActivity", "Error fetching other user UID: ${e.message}")
+                Toast.makeText(this, "Error fetching other user UID", Toast.LENGTH_SHORT).show()
+            }
+    }
+
+    private fun sendMessage(message: String) {
+        val currentUserUid = FirebaseAuth.getInstance().currentUser?.uid
+        if (currentUserUid != null) {
+            val chatData = hashMapOf(
+                "sender" to currentUserUid,
+                "message" to message,
+                "timestamp" to System.currentTimeMillis()
+            )
+
+            val db = FirebaseFirestore.getInstance()
+            db.collection("chats").document(chatId).collection("messages")
+                .add(chatData)
+                .addOnSuccessListener {
+                    Log.d("ChatActivity", "Message sent successfully")
+                    messageEditText.text.clear()
+                }
+                .addOnFailureListener { e ->
+                    Log.e("ChatActivity", "Error sending message: ${e.message}")
+                    Toast.makeText(this, "Error sending message", Toast.LENGTH_SHORT).show()
+                }
+        } else {
+            Toast.makeText(this, "User not logged in", Toast.LENGTH_SHORT).show()
+        }
+    }
+}

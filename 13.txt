@@ -1,0 +1,64 @@
+
+package com.example.meetupp300
+
+
+
+
+import android.content.Intent
+import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.Fragment
+import com.google.android.material.bottomnavigation.BottomNavigationView
+
+class MainActivity : AppCompatActivity() {
+
+    // Inside onCreate() method of MainActivity
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+
+        val bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottomNavigationView)
+        bottomNavigationView.setOnNavigationItemSelectedListener { menuItem ->
+            when (menuItem.itemId) {
+                R.id.nav_home -> {
+                    val homeFragment = HomeFragment()
+                    navigateToFragment(homeFragment)
+                    return@setOnNavigationItemSelectedListener true
+                }
+
+                R.id.nav_chats -> {
+                    val chatsFragment = ChatsFragment()
+                    navigateToFragment(chatsFragment)
+                    return@setOnNavigationItemSelectedListener true
+                }
+
+                R.id.nav_feed -> {
+                    val feedFragment = FeedFragment()
+                    navigateToFragment(feedFragment) // Navigate to FeedFragment
+                    return@setOnNavigationItemSelectedListener true
+                }
+
+
+                R.id.nav_profile -> {
+                    val profileFragment = ProfileFragment()
+                    navigateToFragment(profileFragment)
+                    return@setOnNavigationItemSelectedListener true
+                }
+            }
+            false
+        }
+
+        // Set Home as the default fragment
+        val homeFragment = HomeFragment()
+        navigateToFragment(homeFragment)
+    }
+
+    private fun navigateToFragment(fragment: Fragment) {
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.fragmentContainer, fragment)
+            .commit()
+
+    }
+}
+
+

@@ -1,0 +1,13 @@
+package com.example.meetupp300
+
+data class UserGrid(
+    val userId: String = "",
+    val username: String = "",
+    val gender: String = "",
+    val birthdate: String = "",
+    val profileImageUrl: String = "",
+    val latitude: Double? = null, // Nullable latitude
+    val longitude: Double? = null, // Nullable longitude
+    val location: LocationData? = null,
+    var distance: String = ""
+)

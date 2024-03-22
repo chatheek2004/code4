@@ -1,0 +1,16 @@
+package com.example.meetupp300
+
+
+
+
+
+data class User(
+    val username: String = "",
+    val email: String = "",
+    val gender: String = "",
+    val birthdate: String = "",
+    val profileImageUrl: String? = null // Nullable if the profile image URL is optional
+) {
+    // Default constructor required for Firebase
+    constructor() : this("", "", "", "", null)
+}

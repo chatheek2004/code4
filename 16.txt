@@ -1,0 +1,189 @@
+
+package com.example.meetupp300
+
+import android.content.Context
+import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapShader
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.Shader
+import android.util.Log
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.ImageButton
+import android.widget.ImageView
+import android.widget.TextView
+import android.widget.Toast
+import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.bitmap_recycle.BitmapPool
+import com.bumptech.glide.load.resource.bitmap.BitmapTransformation
+import com.bumptech.glide.request.RequestOptions
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import java.security.MessageDigest
+import java.text.SimpleDateFormat
+import java.util.*
+
+class UserGridAdapter(private var userList: List<UserGrid>) :
+    RecyclerView.Adapter<UserGridAdapter.UserGridViewHolder>() {
+
+    private lateinit var context: Context // Context variable
+    private val currentUserUid: String? = FirebaseAuth.getInstance().currentUser?.uid
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): UserGridViewHolder {
+        context = parent.context // Initialize context
+        val view = LayoutInflater.from(context).inflate(R.layout.item_user_grid, parent, false)
+        return UserGridViewHolder(view)
+    }
+
+    override fun onBindViewHolder(holder: UserGridViewHolder, position: Int) {
+        val user = userList[position]
+        holder.bindUserGrid(user)
+        holder.chatButton.tag = user.userId
+    }
+
+    override fun getItemCount(): Int {
+        return userList.size
+    }
+
+    fun setUserList(userList: List<UserGrid>) {
+        this.userList = userList
+        notifyDataSetChanged()
+    }
+
+    inner class UserGridViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val profileImageView: ImageView = itemView.findViewById(R.id.profileImageView)
+        private val usernameTextView: TextView = itemView.findViewById(R.id.usernameTextView)
+        private val genderTextView: TextView = itemView.findViewById(R.id.genderTextView)
+        private val ageTextView: TextView = itemView.findViewById(R.id.ageTextView)
+        private val distanceTextView: TextView = itemView.findViewById(R.id.distanceTextView)
+        val chatButton: ImageButton = itemView.findViewById(R.id.chatButton)
+
+        init {
+            chatButton.setOnClickListener {
+                val otherUserUid = chatButton.tag.toString() // Get the user ID from the tag
+                Log.d("UserGridAdapter", "Clicked Chat Button for User ID: $otherUserUid")
+                val currentUserUid = FirebaseAuth.getInstance().currentUser?.uid
+                if (currentUserUid != null) {
+                    startChatWithUser(currentUserUid, otherUserUid)
+                } else {
+                    // Handle case where current user is not logged in
+                    Toast.makeText(itemView.context, "User not logged in", Toast.LENGTH_SHORT)
+                        .show()
+                }
+            }
+        }
+
+        fun bindUserGrid(user: UserGrid) {
+            // Load and circle crop profile image with frame using Glide
+            Glide.with(itemView)
+                .load(user.profileImageUrl)
+                .apply(RequestOptions().transforms(CircleCropWithFrame(itemView.context)))
+                .placeholder(R.drawable.errordp) // Placeholder image while loading
+                .error(R.drawable.errordp) // Error image if loading fails
+                .into(profileImageView)
+
+            // Bind other user details
+            usernameTextView.text = user.username
+            genderTextView.text = user.gender
+            ageTextView.text = calculateAge(user.birthdate)
+
+            // Display distance if available
+            if (user.distance.isNotEmpty() && user.distance != "N/A km away") {
+                distanceTextView.visibility = View.VISIBLE
+                distanceTextView.text = "${user.distance} km away"
+            } else {
+                distanceTextView.visibility = View.GONE
+            }
+
+            // Set the user ID (UID) as the tag for the chat button
+            chatButton.tag = user.userId
+        }
+
+        private fun calculateAge(birthdate: String): String {
+            val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
+            val birthDate = dateFormat.parse(birthdate)
+            val cal = Calendar.getInstance()
+            val currentDate = cal.time
+            val diff = currentDate.time - birthDate.time
+            var age = diff / (1000L * 60 * 60 * 24 * 365)
+
+            // Ensure age is at least 18 and at most 90
+            age = maxOf(18, age.toInt()).toLong()
+            age = minOf(90, age)
+
+            return age.toString()
+        }
+
+        private fun startChatWithUser(currentUserUid: String, otherUserUid: String) {
+            val db = FirebaseFirestore.getInstance()
+
+            // Create a new chat document in Firestore
+            val chatData = hashMapOf(
+                "participants" to listOf(currentUserUid, otherUserUid),  // List of participant IDs
+                "messages" to arrayListOf<HashMap<String, Any>>()  // Initialize empty messages list
+            )
+
+            // Add the chat document to Firestore
+            db.collection("chats")
+                .add(chatData)
+                .addOnSuccessListener { documentReference ->
+                    val chatId = documentReference.id
+                    Log.d("UserGridAdapter", "startChatWithUser: Chat Document added with ID: $chatId")
+
+                    // Navigate to the chat activity...
+                    val intent = Intent(itemView.context, ChatActivity::class.java)
+                    intent.putExtra("chatId", chatId)
+                    intent.putExtra("otherUserUid", otherUserUid) // Pass other user's ID to the chat activity
+                    itemView.context.startActivity(intent)
+                }
+                .addOnFailureListener { e ->
+                    Log.e("UserGridAdapter", "startChatWithUser: Error adding chat document: ${e.message}")
+                    Toast.makeText(itemView.context, "Failed to start chat: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+        }
+
+        private fun generateChatId(userId1: String, userId2: String): String {
+            // Ensure userId1 and userId2 are not empty or null
+            if (userId1.isEmpty() || userId2.isEmpty()) {
+                throw IllegalArgumentException("User IDs cannot be empty or null")
+            }
+
+            // Sort the user IDs to ensure consistency in chat ID generation
+            val sortedUserIds = listOf(userId1, userId2).sorted()
+
+            // Concatenate the sorted user IDs to create a unique chat ID
+            return "${sortedUserIds[0]}_${sortedUserIds[1]}"
+        }
+    }
+
+    // CircleCropWithFrame class for adding a circular frame around the circle-cropped image
+    class CircleCropWithFrame(private val context: Context) : BitmapTransformation() {
+        override fun transform(pool: BitmapPool, toTransform: Bitmap, outWidth: Int, outHeight: Int): Bitmap {
+            val size = Math.min(toTransform.width, toTransform.height)
+            val x = (toTransform.width - size) / 2
+            val y = (toTransform.height - size) / 2
+
+            val squaredBitmap = Bitmap.createBitmap(toTransform, x, y, size, size)
+            val bitmap = pool.get(size, size, Bitmap.Config.ARGB_8888)
+
+            val canvas = Canvas(bitmap)
+            val paint = Paint()
+            paint.shader = BitmapShader(squaredBitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
+            paint.isAntiAlias = true
+
+            val radius = size / 2f
+            canvas.drawCircle(radius, radius, radius, paint)
+
+            squaredBitmap.recycle()
+            return bitmap
+        }
+
+        override fun updateDiskCacheKey(messageDigest: MessageDigest) {
+            // Implement to uniquely identify this transformation for caching purposes
+        }
+    }
+}
